@@ -65,6 +65,90 @@
       TODO(henbos): Fill in.
     </p>
   </section>
+  <section id="*">
+    <h3>
+      <dfn>RTCRtpReceiver</dfn> extensions
+    </h3>
+    <p>
+      Let <code>RTCRtpReceiver</code> objects have an
+      <dfn>[[\ReceiverJitterBufferDelayHint]]</dfn> internal slot initially
+      initialized to <code>null</code>.
+    </p>
+    <pre class="idl">partial interface RTCRtpReceiver {
+  attribute double? jitterBufferDelayHint;
+};</pre>
+    <section>
+      <h2>Attributes</h2>
+      <dl data-link-for="RTCRtpReceiver" data-dfn-for="RTCRtpReceiver"
+      class="attributes">
+        <dt><dfn><code>jitterBufferDelayHint</code></dfn> of type <span
+          class="idlAttrType">double</span>, nullable</dt>
+        <dd>
+          <p>This attribute affects how much additional delay the system adds,
+          by adjusting the length of the jitter buffer. This allows to influence
+          the tradeoffs between having a higher delay and the risk that jitter
+          buffer will run out of audio or video frames to play due to network
+          jitter.</p>
+          <p>The actual delay can be monitored by differentiating <code><a
+          href="https://w3c.github.io/webrtc-stats/#dom-rtcvideoreceiverstats-jitterbufferdelay">
+          jitterBufferDelay</a></code> with respect to <code><a
+          href="https://w3c.github.io/webrtc-stats/#dom-rtcvideoreceiverstats-jitterbufferemittedcount">
+          jitterBufferEmittedCount</a></code>
+          </p>
+          <p>The User Agent SHOULD maintain actual delay close to
+          <code>jitterBufferDelayHint</code> subjected to physical constraints.
+          For instance:</p>
+          <ul>
+            <li>
+              If jitter buffer has run out of frames to play,
+              then it is infeasible to maintain any delay besides zero.
+            </li>
+            <li>
+              If <code>jitterBufferDelayHint</code> value is higher than jitter
+              buffer can maintain (e.g. delay is beyond jitter buffer maximum
+              capacity), then it SHOULD keep delay as high as possible.
+            </li>
+          </ul>
+          <p>The speed with each jitter buffer reaches
+          <code>jitterBufferDelayHint</code> MUST NOT hurt user experience by
+          accelerating or deaccelerating audio or video too much.
+          <p>On getting, this attribute MUST return the value of the
+          <a>[[\ReceiverJitterBufferDelayHint]]</a> slot.</p>
+          <p>On setting, the user agent MUST run the following steps:</p>
+          <ol>
+            <li>
+              <p>Let <var>receiver</var> be the
+              <code><a>RTCRtpReceiver</a></code> object on which the setter is
+              invoked.</p>
+            </li>
+            <li>
+              <p>Let <var>delay</var> be the argument to the setter.</p>
+            </li>
+            <li>
+              <p>If <var>delay</var> is negative, <a>throw</a> an
+              <code>InvalidAccessError</code> and abort these steps.</p>
+            </li>
+            <li>
+              <p>Set the value of <var>receiver</var>'s
+              <a>[[\ReceiverJitterBufferDelayHint]]</a> internal slot to
+              <var>delay</var>.</p>
+            </li>
+            <li>
+              <p>In parallel, begin executing the following steps:</p>
+              <ol>
+                <li>
+                  <p>Inform the underlying congestion control mechanism that
+                  <var>delay</var> is the new jitter buffer delay hint for
+                  this <var>receiver</var>, or that there is no preferences for
+                  this <var>receiver</var> if <var>delay</var> is
+                  <code>null</code>.</p>
+                </li>
+              </ol>
+            </li>
+          </ol>
+        </dd>
+      </dl>
+    </section>
+  </section>
 </body>
-
 </html>
